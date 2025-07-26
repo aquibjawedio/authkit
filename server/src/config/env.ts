@@ -13,10 +13,14 @@ interface IEnv {
   MAILTRAP_PASSWORD: string;
   SENDER_EMAIL: string;
   RESEND_API_KEY: string;
+  ACCESS_TOKEN_SECRET: string;
+  ACCESS_TOKEN_EXPIRY: string;
+  REFRESH_TOKEN_SECRET: string;
+  REFRESH_TOKEN_EXPIRY: string;
 }
 
 const env: IEnv = {
-  PORT: parseInt(process.env.PORT || "3000"),
+  PORT: parseInt(process.env.PORT) || 3000,
   NODE_ENV: process.env.NODE_ENV,
   DATABASE_URL: process.env.DATABASE_URL,
   FRONTEND_URL: process.env.FRONTEND_URL,
@@ -27,6 +31,12 @@ const env: IEnv = {
   MAILTRAP_PASSWORD: process.env.MAILTRAP_PASSWORD,
   SENDER_EMAIL: process.env.SENDER_EMAIL,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
+
+  ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
+  ACCESS_TOKEN_EXPIRY: process.env.ACCESS_TOKEN_EXPIRY || "15m",
+
+  REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
+  REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY || "7d",
 };
 
 export { env };

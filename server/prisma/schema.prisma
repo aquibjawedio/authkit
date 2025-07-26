@@ -56,14 +56,17 @@ model User {
 model Session {
   id           String    @id @default(uuid())
   refreshToken String    @unique
-  ipAddress    String
   userAgent    String
   device       String
   os           String
   browser      String
-  location     String
+  ipAddress    String
+  country      String
+  region       String
+  regionName   String
+  city         String
+  zip          Int
   timezone     String
-  language     String
   isRevoked    Boolean   @default(false)
   user         User      @relation(fields: [userId], references: [id])
   userId       String

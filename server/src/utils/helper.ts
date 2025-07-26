@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { User } from "../generated/prisma/index.js";
 import crypto from "crypto";
 
-export const isPasswordCorrect = async (password: string, user: User) => {
+export const comparePassword = async (password: string, user: User) => {
   return bcrypt.compare(password, user.password);
 };
 
@@ -17,6 +17,6 @@ export const generateTemporaryToken = () => {
   return { unHashedToken, hashedToken, tokenExpiry };
 };
 
-export const createCryptoHash = (unHashedToken: string) => {
-  return crypto.createHash("sha256").update(unHashedToken).digest("hex");
+export const createCryptoHash = (value: string) => {
+  return crypto.createHash("sha256").update(value).digest("hex");
 };

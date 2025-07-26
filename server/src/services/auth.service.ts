@@ -1,12 +1,20 @@
 import { prisma } from "../config/prisma.js";
-import { RegisterDTO, VerifyEmailDTO } from "../schemas/auth.schema.js";
+import { loginDTO, RegisterDTO, SessionDTO, VerifyEmailDTO } from "../schemas/auth.schema.js";
 import { ApiError } from "../utils/ApiError.js";
-import { createCryptoHash, generateTemporaryToken, hashPassword } from "../utils/helper.js";
+import {
+  comparePassword,
+  createCryptoHash,
+  generateTemporaryToken,
+  hashPassword,
+} from "../utils/helper.js";
 import { logger } from "../utils/logger.js";
 import { sanitizeUser } from "../utils/sanitize.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import { emailVerificationMailGenContent } from "../utils/emailTemplates.js";
 import { env } from "../config/env.js";
+import { generateAccessToken } from "../utils/jwt.js";
+import { cookieOptions } from "../config/cookie.js";
+import { getGeoLocation } from "../utils/geoIp.js";
 
 export const registerService = async ({ fullname, username, email, password }: RegisterDTO) => {
   logger.info(`Attempt to register user : email - ${email}`);
@@ -120,4 +128,105 @@ export const VerifyEmailService = async ({ token }: VerifyEmailDTO) => {
   logger.info(`Verification Successfull : User verified with email - ${user.email}`);
 
   return sanitizeUser(updatedUser);
+};
+
+export const loginService = async ({ email, password }: loginDTO, ua: SessionDTO) => {
+  logger.info(`Attempt To Login : Finding user with email - ${email}`);
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (!user) {
+    logger.error(`Login Failed : User doesn't exists with email - ${email}`);
+    throw new ApiError(401, "User not found with this email");
+  }
+
+  if (!user.isEmailVerified) {
+    logger.warn(`Login Failed : User email is not verified - ${email}`);
+    throw new ApiError(403, "User email is not verified");
+  }
+
+  if (user.isDeleted) {
+    logger.warn(`Login Failed : User is deleted - ${email}`);
+    throw new ApiError(403, "User is deleted");
+  }
+
+  if (user.status !== "ACTIVE") {
+    logger.warn(`Login Failed : User is not active - ${email}`);
+    throw new ApiError(403, "User is not active");
+  }
+
+  const isPasswordCorrect = await comparePassword(password, user);
+
+  if (!isPasswordCorrect) {
+    logger.error(`Login Failed : Incorrect password for user - ${email}`);
+    throw new ApiError(401, "Incorrect password");
+  }
+
+  const geo = await getGeoLocation(ua.ipAddress);
+
+  const session = await prisma.session.create({
+    data: {
+      refreshToken: "",
+      userAgent: ua.userAgent,
+      device: ua.device || "desktop",
+      os: ua.os || "Unknown",
+      browser: ua.browser || "Unknown",
+      ipAddress: ua.ipAddress || "Unknown",
+      country: geo.country || "Unknown",
+      region: geo.region || "Unknown",
+      regionName: geo.regionName || "Unknown",
+      city: geo.city || "Unknown",
+      zip: Number(geo.zip) || 0,
+      timezone: geo.timezone || "Unknown",
+      userId: user.id,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+    },
+  });
+
+  const accessToken = await generateAccessToken({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    sessionId: session.id,
+  });
+  const accessTokenOptions = cookieOptions(15);
+
+  const refreshToken = await generateAccessToken({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    sessionId: session.id,
+  });
+  const refreshTokenOptions = cookieOptions(60 * 24 * 7);
+
+  await prisma.session.update({
+    where: {
+      id: session.id,
+    },
+    data: {
+      refreshToken: createCryptoHash(refreshToken),
+    },
+  });
+
+  const updatedUser = await prisma.user.update({
+    where: {
+      id: user.id,
+    },
+    data: {
+      lastLogin: new Date(),
+    },
+  });
+
+  logger.info(`Login Successfull : User logged in with email - ${email}`);
+
+  return {
+    user: sanitizeUser(updatedUser),
+    accessToken,
+    accessTokenOptions,
+    refreshToken,
+    refreshTokenOptions,
+  };
 };

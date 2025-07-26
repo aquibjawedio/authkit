@@ -1,8 +1,16 @@
 import { Request, Response } from "express";
+import { UAParser } from "ua-parser-js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { registerSchema, verifyEmailSchema } from "../schemas/auth.schema.js";
+import {
+  loginSchema,
+  registerSchema,
+  SessionDTO,
+  verifyEmailSchema,
+} from "../schemas/auth.schema.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { registerService, VerifyEmailService } from "../services/auth.service.js";
+import { loginService, registerService, VerifyEmailService } from "../services/auth.service.js";
+import { ApiError } from "../utils/ApiError.js";
+import { logger } from "../utils/logger.js";
 
 /* 
   Register user with fullname, user name , email and password.
@@ -30,5 +38,37 @@ export const verifyEmailController = asyncHandler(async (req: Request, res: Resp
   Now user can login with the same credentials.
 */
 export const loginController = asyncHandler(async (req: Request, res: Response) => {
-  return res.status(200).json(new ApiResponse(200, "User logged in successfully"));
+  const { data } = loginSchema.safeParse(req.body);
+
+  if (req.cookies.accessToken && req.cookies.refreshToken) {
+    logger.warn(`Login Attempt Failed: User is already logged in with email - ${data.email}`);
+    throw new ApiError(403, "User is already logged in with this email");
+  }
+
+  if (req.cookies.refreshToken) {
+    logger.warn(`Login Attempt Failed: User is already logged in with email - ${data.email}`);
+    throw new ApiError(403, "User is already logged in with this email");
+  }
+
+  const ipAddress = req.ip || req.socket.remoteAddress;
+  const userAgent = req.headers["user-agent"];
+
+  const ua = UAParser(req.headers["user-agent"]);
+
+  const uaData: SessionDTO = {
+    ipAddress,
+    userAgent,
+    device: ua.device.type || "desktop",
+    os: `${ua.os.name} ${ua.os.version}`,
+    browser: `${ua.browser.name} ${ua.browser.version}`,
+  };
+
+  const { user, accessToken, accessTokenOptions, refreshToken, refreshTokenOptions } =
+    await loginService(data, uaData);
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, accessTokenOptions)
+    .cookie("refreshToken", refreshToken, refreshTokenOptions)
+    .json(new ApiResponse(200, "User logged in successfully", { user }));
 });
