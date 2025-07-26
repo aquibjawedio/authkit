@@ -3,6 +3,7 @@ import { UAParser } from "ua-parser-js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   loginSchema,
+  logoutSchema,
   refreshAccessTokenSchema,
   registerSchema,
   SessionDTO,
@@ -11,6 +12,7 @@ import {
 import { ApiResponse } from "../utils/ApiResponse.js";
 import {
   loginService,
+  logoutService,
   refreshAccessTokenService,
   registerService,
   VerifyEmailService,
@@ -102,4 +104,22 @@ export const refreshAccessTokenController = asyncHandler(async (req: Request, re
     .cookie("accessToken", accessToken, accessTokenOptions)
     .cookie("refreshToken", refreshToken, refreshTokenOptions)
     .json(new ApiResponse(200, "Access token refreshed successfully", { user }));
+});
+
+/* 
+  Now a logged in user can log out.
+*/
+
+export const logoutController = asyncHandler(async (req: Request, res: Response) => {
+  const { data } = logoutSchema.safeParse({
+    refreshToken: req.cookies?.refreshToken,
+  });
+
+  const { options } = await logoutService(data);
+
+  res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, "User logged out successfully"));
 });

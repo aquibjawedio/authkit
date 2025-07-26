@@ -37,3 +37,9 @@ export const refreshAccessTokenSchema = z.object({
 });
 
 export type RefreshDTO = z.infer<typeof refreshAccessTokenSchema>;
+
+export const logoutSchema = z.object({
+  refreshToken: z.string().trim().min(1, "Refresh token is required"),
+});
+
+export type LogoutDTO = z.infer<typeof logoutSchema>;

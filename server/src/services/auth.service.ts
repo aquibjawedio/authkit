@@ -1,6 +1,7 @@
 import { prisma } from "../config/prisma.js";
 import {
   LoginDTO,
+  LogoutDTO,
   RefreshDTO,
   RegisterDTO,
   SessionDTO,
@@ -175,7 +176,7 @@ export const loginService = async ({ email, password }: LoginDTO, ua: SessionDTO
 
   const session = await prisma.session.create({
     data: {
-      refreshToken: "",
+      refreshToken: null,
       userAgent: ua.userAgent,
       device: ua.device || "desktop",
       os: ua.os || "Unknown",
@@ -297,6 +298,7 @@ export const refreshAccessTokenService = async ({ token, incomingIp, userAgent }
     },
     data: {
       refreshToken: createCryptoHash(refreshToken),
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
     },
   });
 
@@ -318,4 +320,39 @@ export const refreshAccessTokenService = async ({ token, incomingIp, userAgent }
     refreshToken,
     refreshTokenOptions,
   };
+};
+
+export const logoutService = async ({ refreshToken }: LogoutDTO) => {
+  logger.info(`Attempt To Logout : Logging out user with access token - ${refreshToken}`);
+
+  const hashedToken = createCryptoHash(refreshToken);
+
+  const session = await prisma.session.findUnique({
+    where: {
+      refreshToken: hashedToken,
+    },
+  });
+
+  if (!session) {
+    logger.error(`Logout Failed : Session not found for token - ${refreshToken}`);
+    throw new ApiError(401, "Session not found. Please log in again.");
+  }
+
+  if (session.isRevoked || (session.expiresAt && new Date() > session.expiresAt)) {
+    logger.warn(`Logout Failed : Session expired or revoked for token - ${refreshToken}`);
+    throw new ApiError(403, "Session expired or revoked. Please log in again.");
+  }
+
+  await prisma.session.update({
+    where: {
+      id: session.id,
+    },
+    data: {
+      isRevoked: true,
+      refreshToken: null,
+    },
+  });
+
+  logger.info(`Logout Successfull : User logged out with access token - ${refreshToken}`);
+  return { options: cookieOptions(0) };
 };
