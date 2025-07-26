@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import { env } from "./config/env.js";
 import { healthRouter } from "./routes/health.route.js";
+import { authRouter } from "./routes/auth.route.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
 
@@ -19,5 +21,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Defining all routes here
 app.use("/api/v1/health", healthRouter);
+app.use("/api/v1/auth", authRouter);
+
+// Error Middleware
+app.use(errorHandler);
 
 export { app };

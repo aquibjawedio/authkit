@@ -2,7 +2,6 @@ class ApiError extends Error {
   statusCode: number;
   success: boolean;
   name: string;
-  message: string;
   errors: any;
   stack?: string;
 

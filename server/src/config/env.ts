@@ -6,6 +6,13 @@ interface IEnv {
   NODE_ENV: string;
   DATABASE_URL: string;
   FRONTEND_URL: string;
+  LOG_LEVEL: string;
+  MAILTRAP_HOST: string;
+  MAILTRAP_PORT: number;
+  MAILTRAP_USERNAME: string;
+  MAILTRAP_PASSWORD: string;
+  SENDER_EMAIL: string;
+  RESEND_API_KEY: string;
 }
 
 const env: IEnv = {
@@ -13,6 +20,13 @@ const env: IEnv = {
   NODE_ENV: process.env.NODE_ENV,
   DATABASE_URL: process.env.DATABASE_URL,
   FRONTEND_URL: process.env.FRONTEND_URL,
+  LOG_LEVEL: process.env.LOG_LEVEL || "info",
+  MAILTRAP_HOST: process.env.MAILTRAP_HOST,
+  MAILTRAP_PORT: parseInt(process.env.MAILTRAP_PORT),
+  MAILTRAP_USERNAME: process.env.MAILTRAP_USERNAME,
+  MAILTRAP_PASSWORD: process.env.MAILTRAP_PASSWORD,
+  SENDER_EMAIL: process.env.SENDER_EMAIL,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
 };
 
 export { env };

@@ -14,15 +14,22 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.12.0",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mailgen": "^2.0.29",
+    "nodemailer": "^7.0.5",
+    "resend": "^4.7.0",
+    "winston": "^3.17.0",
     "zod": "^4.0.10"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.1.0",
+    "@types/nodemailer": "^6.4.17",
     "prettier": "^3.6.2",
     "prisma": "^6.12.0",
     "tsx": "^4.20.3",
