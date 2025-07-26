@@ -83,6 +83,11 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
   Now user can login with the same credentials.
 */
 export const refreshAccessTokenController = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.cookies?.refreshToken) {
+    logger.error("Refreshing Failed : Missing refresh token");
+    throw new ApiError(401, "Missing refresh token while refreshing.");
+  }
+
   const { data } = refreshAccessTokenSchema.safeParse({
     token: req.cookies.refreshToken,
     incomingIp: req.ip || req.socket.remoteAddress,

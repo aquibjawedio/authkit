@@ -19,3 +19,11 @@ export const generateRefreshToken = async ({ id, email, role, sessionId }: JwtOp
     expiresIn: env.REFRESH_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"],
   });
 };
+
+export const verifyJWTRefreshToken = (refreshToken: string) => {
+  return jwt.verify(refreshToken, env.REFRESH_TOKEN_SECRET);
+};
+
+export const verifyJWTAccessToken = (accessToken: string) => {
+  return jwt.verify(accessToken, env.ACCESS_TOKEN_SECRET);
+};
