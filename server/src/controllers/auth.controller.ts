@@ -3,12 +3,18 @@ import { UAParser } from "ua-parser-js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   loginSchema,
+  refreshAccessTokenSchema,
   registerSchema,
   SessionDTO,
   verifyEmailSchema,
 } from "../schemas/auth.schema.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { loginService, registerService, VerifyEmailService } from "../services/auth.service.js";
+import {
+  loginService,
+  refreshAccessTokenService,
+  registerService,
+  VerifyEmailService,
+} from "../services/auth.service.js";
 import { ApiError } from "../utils/ApiError.js";
 import { logger } from "../utils/logger.js";
 
@@ -71,4 +77,24 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
     .cookie("accessToken", accessToken, accessTokenOptions)
     .cookie("refreshToken", refreshToken, refreshTokenOptions)
     .json(new ApiResponse(200, "User logged in successfully", { user }));
+});
+
+/* 
+  Now user can login with the same credentials.
+*/
+export const refreshAccessTokenController = asyncHandler(async (req: Request, res: Response) => {
+  const { data } = refreshAccessTokenSchema.safeParse({
+    token: req.cookies.refreshToken,
+    incomingIp: req.ip || req.socket.remoteAddress,
+    userAgent: req.headers["user-agent"],
+  });
+
+  const { user, accessToken, accessTokenOptions, refreshToken, refreshTokenOptions } =
+    await refreshAccessTokenService(data);
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, accessTokenOptions)
+    .cookie("refreshToken", refreshToken, refreshTokenOptions)
+    .json(new ApiResponse(200, "Access token refreshed successfully", { user }));
 });

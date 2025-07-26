@@ -1,5 +1,11 @@
 import { prisma } from "../config/prisma.js";
-import { loginDTO, RegisterDTO, SessionDTO, VerifyEmailDTO } from "../schemas/auth.schema.js";
+import {
+  LoginDTO,
+  RefreshDTO,
+  RegisterDTO,
+  SessionDTO,
+  VerifyEmailDTO,
+} from "../schemas/auth.schema.js";
 import { ApiError } from "../utils/ApiError.js";
 import {
   comparePassword,
@@ -12,7 +18,7 @@ import { sanitizeUser } from "../utils/sanitize.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import { emailVerificationMailGenContent } from "../utils/emailTemplates.js";
 import { env } from "../config/env.js";
-import { generateAccessToken } from "../utils/jwt.js";
+import { generateAccessToken, generateRefreshToken } from "../utils/jwt.js";
 import { cookieOptions } from "../config/cookie.js";
 import { getGeoLocation } from "../utils/geoIp.js";
 
@@ -130,7 +136,7 @@ export const VerifyEmailService = async ({ token }: VerifyEmailDTO) => {
   return sanitizeUser(updatedUser);
 };
 
-export const loginService = async ({ email, password }: loginDTO, ua: SessionDTO) => {
+export const loginService = async ({ email, password }: LoginDTO, ua: SessionDTO) => {
   logger.info(`Attempt To Login : Finding user with email - ${email}`);
   const user = await prisma.user.findUnique({
     where: {
@@ -194,7 +200,7 @@ export const loginService = async ({ email, password }: loginDTO, ua: SessionDTO
   });
   const accessTokenOptions = cookieOptions(15);
 
-  const refreshToken = await generateAccessToken({
+  const refreshToken = await generateRefreshToken({
     id: user.id,
     email: user.email,
     role: user.role,
@@ -221,6 +227,89 @@ export const loginService = async ({ email, password }: loginDTO, ua: SessionDTO
   });
 
   logger.info(`Login Successfull : User logged in with email - ${email}`);
+
+  return {
+    user: sanitizeUser(updatedUser),
+    accessToken,
+    accessTokenOptions,
+    refreshToken,
+    refreshTokenOptions,
+  };
+};
+
+export const refreshAccessTokenService = async ({ token, incomingIp, userAgent }: RefreshDTO) => {
+  logger.info(`Attemp To Refresh Token : Refresing token - ${token}`);
+  const hashedToken = createCryptoHash(token);
+
+  const session = await prisma.session.findUnique({
+    where: {
+      refreshToken: hashedToken,
+    },
+  });
+
+  if (!session) {
+    logger.warn(`Possible Token Replay Detected: Refresh token not found or reused - ${token}`);
+    throw new ApiError(401, "Invalid or expired refresh token. Please log in again.");
+  }
+
+  if (session.isRevoked || (session.expiresAt && new Date() > session.expiresAt)) {
+    logger.warn(`Refreshing Token Denied: Session expired or revoked for token - ${token}`);
+    throw new ApiError(403, "Session expired or revoked. Please log in again.");
+  }
+
+  if (incomingIp !== session.ipAddress || userAgent !== session.userAgent) {
+    logger.warn(
+      `Mismatched session context for user - ${session.userId}. IP or User Agent mismatch.`
+    );
+    throw new ApiError(401, "Session context mismatch. Please log in again.");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: session.userId,
+    },
+  });
+
+  if (!user) {
+    logger.error(`Refreshing Token Failed : User not found with session id - ${session.id}`);
+    throw new ApiError(401, "User not found, please login again.");
+  }
+
+  const accessToken = await generateAccessToken({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    sessionId: session.id,
+  });
+  const accessTokenOptions = cookieOptions(15);
+
+  const refreshToken = await generateRefreshToken({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    sessionId: session.id,
+  });
+  const refreshTokenOptions = cookieOptions(60 * 24 * 7);
+
+  await prisma.session.update({
+    where: {
+      id: session.id,
+    },
+    data: {
+      refreshToken: createCryptoHash(refreshToken),
+    },
+  });
+
+  const updatedUser = await prisma.user.update({
+    where: {
+      id: user.id,
+    },
+    data: {
+      lastLogin: new Date(),
+    },
+  });
+
+  logger.info(`Refreshing Token Successfull : User refreshed token with email - ${user.email}`);
 
   return {
     user: sanitizeUser(updatedUser),
