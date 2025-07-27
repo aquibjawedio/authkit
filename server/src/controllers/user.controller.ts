@@ -4,16 +4,23 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import {
   deleteMyAllSessionSchema,
   deleteMySessionByIdSchema,
+  deleteUserByIdSchema,
   getMeSchema,
   getMyAllSessionSchema,
   getMySessionByIdSchema,
+  getUserByIdSchema,
+  restrictUserByIdSchema,
 } from "../schemas/user.schema.js";
 import {
   deleteMyAllSessionsService,
   deleteMySessionByIdService,
+  deleteUserByIdService,
+  getAllUsersService,
   getMeService,
   getMyAllSessionsService,
   getMySessionByIdService,
+  getUserByIdService,
+  restrictUserByIdService,
 } from "../services/user.service.js";
 
 export const getMeController = asyncHandler(async (req: Request, res: Response) => {
@@ -84,4 +91,52 @@ export const deleteMySessionByIdController = asyncHandler(async (req: Request, r
   const message = await deleteMySessionByIdService(data);
 
   return res.status(200).json(new ApiResponse(200, message || "Session deleted successfully", {}));
+});
+
+/* 
+  Controllers for user management that can be accessed by both admin and users
+*/
+export const getAllUsersController = asyncHandler(async (req: Request, res: Response) => {
+  const users = await getAllUsersService();
+  return res.status(200).json(new ApiResponse(200, "All users fetched successfully", { users }));
+});
+
+export const getUserByIdController = asyncHandler(async (req: Request, res: Response) => {
+  const { data } = getUserByIdSchema.safeParse({ userId: req.params.userId });
+
+  const user = await getUserByIdService(data);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "User information fetched successfully", { user }));
+});
+
+export const restrictUserByIdController = asyncHandler(async (req: Request, res: Response) => {
+  const { data } = restrictUserByIdSchema.safeParse({
+    userId: req.params.userId,
+    ...req.body,
+  });
+
+  if (data.userId === req.user?.id) {
+    return res.status(400).json(new ApiResponse(400, "Cannot restrict your own account", {}));
+  }
+
+  const user = await restrictUserByIdService(data);
+
+  return res.status(200).json(new ApiResponse(200, "User status updated successfully", { user }));
+});
+
+/* 
+  Only admin controllers for user management
+*/
+export const deleteUserByIdController = asyncHandler(async (req: Request, res: Response) => {
+  const { data } = deleteUserByIdSchema.safeParse({ userId: req.params.userId });
+
+  if (data.userId === req.user?.id) {
+    return res.status(400).json(new ApiResponse(400, "Cannot delete your own account", {}));
+  }
+
+  const message = await deleteUserByIdService(data);
+
+  return res.status(200).json(new ApiResponse(200, message || "User deleted successfully", {}));
 });

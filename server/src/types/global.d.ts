@@ -2,6 +2,7 @@ export interface AuthTokenPayload {
   id: string;
   email: string;
   role: string;
+  status: string;
   sessionId: string;
   iat?: number;
   exp?: number;

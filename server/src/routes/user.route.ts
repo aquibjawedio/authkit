@@ -2,11 +2,15 @@ import { Router } from "express";
 import {
   deleteMyAllSessionController,
   deleteMySessionByIdController,
+  deleteUserByIdController,
+  getAllUsersController,
   getMeController,
   getMyAllSessionController,
   getMySessionByIdController,
+  getUserByIdController,
+  restrictUserByIdController,
 } from "../controllers/user.controller.js";
-import { isLoggedIn } from "../middlewares/auth.middleware.js";
+import { isAdmin, isLoggedIn, isModOrAdmin } from "../middlewares/auth.middleware.js";
 
 const userRouter = Router();
 
@@ -18,5 +22,14 @@ userRouter.route("/me/sessions").delete(isLoggedIn, deleteMyAllSessionController
 
 userRouter.route("/me/sessions/:sessionId").get(isLoggedIn, getMySessionByIdController);
 userRouter.route("/me/sessions/:sessionId").delete(isLoggedIn, deleteMySessionByIdController);
+
+// Mod and Admin Routes
+
+userRouter.route("/").get(isLoggedIn, isModOrAdmin, getAllUsersController);
+userRouter.route("/:userId").get(isLoggedIn, isModOrAdmin, getUserByIdController);
+userRouter.route("/:userId").patch(isLoggedIn, isModOrAdmin, restrictUserByIdController);
+
+// Admin Only Routes
+userRouter.route("/:userId").delete(isLoggedIn, isAdmin, deleteUserByIdController);
 
 export { userRouter };

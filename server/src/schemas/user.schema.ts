@@ -32,3 +32,22 @@ export const deleteMySessionByIdSchema = z.object({
 });
 
 export type DeleteMySessionByIdDTO = z.infer<typeof deleteMySessionByIdSchema>;
+
+// Mods and Admins
+
+export const getUserByIdSchema = z.object({
+  userId: z.string().trim().min(1, "User ID is required"),
+});
+
+export type GetUserByIdDTO = z.infer<typeof getUserByIdSchema>;
+
+export const restrictUserByIdSchema = z.object({
+  userId: z.string().trim().min(1, "User ID is required"),
+  status: z.enum(["ACTIVE", "SUSPENDED", "DEACTIVATED", "BANNED"]),
+});
+export type RestrictUserByIdDTO = z.infer<typeof restrictUserByIdSchema>;
+
+export const deleteUserByIdSchema = z.object({
+  userId: z.string().trim().min(1, "User ID is required"),
+});
+export type DeleteUserByIdDTO = z.infer<typeof deleteUserByIdSchema>;

@@ -40,6 +40,21 @@ export const isLoggedIn = asyncHandler(async (req: Request, res: Response, next:
   next();
 });
 
-export const isMod = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {});
+export const isModOrAdmin = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    if (req.user?.role !== "MOD" && req.user?.role !== "ADMIN") {
+      console.log("User role:", req.user?.role);
+      logger.warn(`User with ID ${req.user?.id} is not authorized to access this resource`);
+      throw new ApiError(403, "Forbidden! You do not have permission to access this resource");
+    }
+    next();
+  }
+);
 
-export const isAdmin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {});
+export const isAdmin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  if (req.user?.role !== "ADMIN") {
+    logger.warn(`User with ID ${req.user?.id} is not authorized to access this resource`);
+    throw new ApiError(403, "Forbidden! You do not have permission to access this resource");
+  }
+  next();
+});

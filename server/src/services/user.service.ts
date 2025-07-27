@@ -5,6 +5,9 @@ import {
   DeleteMyAllSessionDTO,
   GetMySessionByIdDTO,
   DeleteMySessionByIdDTO,
+  GetUserByIdDTO,
+  RestrictUserByIdDTO,
+  DeleteUserByIdDTO,
 } from "../schemas/user.schema.js";
 import { ApiError } from "../utils/ApiError.js";
 import { logger } from "../utils/logger.js";
@@ -133,4 +136,133 @@ export const deleteMySessionByIdService = async ({ userId, sessionId }: DeleteMy
 
   logger.info(`Successfully Deleted User Session : Session with id - ${sessionId} deleted`);
   return "Session deleted successfully";
+};
+
+// Mod and Admin Services
+export const getAllUsersService = async () => {
+  logger.info("Attempt To Get All Users : Fetching all users");
+
+  const users = await prisma.user.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  if (!users || users.length === 0) {
+    logger.warn("No users found");
+    return [];
+  }
+
+  logger.info(`Successfully Fetched All Users : Found ${users.length} users`);
+  return users.map(sanitizeUser);
+};
+
+export const getUserByIdService = async ({ userId }: GetUserByIdDTO) => {
+  logger.info(`Attempt To Get User By ID : Finding user with id - ${userId}`);
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!user) {
+    logger.error(`Failed To Get User By ID : User with id - ${userId} not found`);
+    throw new ApiError(404, "User not found");
+  }
+
+  logger.info(`Successfully Fetched User By ID : User with id - ${userId} found`);
+  return sanitizeUser(user);
+};
+
+export const restrictUserByIdService = async ({ userId, status }: RestrictUserByIdDTO) => {
+  logger.info(`Attempt To Restrict User : Restricting user with id - ${userId}`);
+
+  const lockOutTime = {
+    BANNED: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    SUSPENDED: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    DEACTIVATED: null,
+    ACTIVE: null,
+  };
+  logger.error(`Invalid status provided: ${status}`);
+
+  const user = await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      status: status,
+      lockoutExpiry: lockOutTime[status] || null,
+    },
+  });
+
+  if (!user) {
+    logger.error(`Failed To Restrict User : User with id - ${userId} not found`);
+    throw new ApiError(404, "User not found");
+  }
+
+  if (status === user.status) {
+    logger.warn(`User with id - ${userId} is already in status - ${status}`);
+    return sanitizeUser(user);
+  }
+
+  const sessions = await prisma.session.updateMany({
+    where: {
+      userId: userId,
+      isRevoked: false,
+    },
+    data: {
+      isRevoked: true,
+    },
+  });
+  if (sessions.count > 0) {
+    logger.info(`Revoked ${sessions.count} active sessions for user with id - ${userId}`);
+  }
+
+  logger.info(`Successfully Restricted User : User with id - ${userId} restricted`);
+  return sanitizeUser(user);
+};
+
+// Admin Only Services
+
+export const deleteUserByIdService = async ({ userId }: DeleteUserByIdDTO) => {
+  logger.info(`Attempt To Delete User : Deleting user with id - ${userId}`);
+
+  const user = await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      isDeleted: true,
+      status: "DEACTIVATED",
+      lockoutExpiry: null,
+    },
+  });
+
+  if (!user) {
+    logger.error(`Failed To Delete User : User with id - ${userId} not found`);
+    throw new ApiError(404, "User not found");
+  }
+
+  if (user.isDeleted) {
+    logger.warn(`User with id - ${userId} is already deleted`);
+    return "User already deleted";
+  }
+
+  const sessions = await prisma.session.updateMany({
+    where: {
+      userId: userId,
+      isRevoked: false,
+    },
+    data: {
+      isRevoked: true,
+    },
+  });
+  if (sessions.count > 0) {
+    logger.info(`Revoked ${sessions.count} active sessions for user with id - ${userId}`);
+  }
+
+  logger.info(`Successfully Deleted User : User with id - ${userId} deleted`);
+
+  return "User deleted successfully";
 };

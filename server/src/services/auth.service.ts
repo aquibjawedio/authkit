@@ -165,6 +165,11 @@ export const loginService = async ({ email, password }: LoginDTO, ua: SessionDTO
     throw new ApiError(403, "User is not active");
   }
 
+  if (user.lockoutExpiry && user.lockoutExpiry > new Date()) {
+    logger.warn(`Login Failed : User is locked out - ${email}`);
+    throw new ApiError(403, "User is locked out. Please contact support.");
+  }
+
   const isPasswordCorrect = await comparePassword(password, user);
 
   if (!isPasswordCorrect) {
@@ -198,6 +203,7 @@ export const loginService = async ({ email, password }: LoginDTO, ua: SessionDTO
     email: user.email,
     role: user.role,
     sessionId: session.id,
+    status: user.status,
   });
   const accessTokenOptions = cookieOptions(15);
 
@@ -206,6 +212,7 @@ export const loginService = async ({ email, password }: LoginDTO, ua: SessionDTO
     email: user.email,
     role: user.role,
     sessionId: session.id,
+    status: user.status,
   });
   const refreshTokenOptions = cookieOptions(60 * 24 * 7);
 
@@ -276,11 +283,17 @@ export const refreshAccessTokenService = async ({ token, incomingIp, userAgent }
     throw new ApiError(401, "User not found, please login again.");
   }
 
+  if (user.status !== "ACTIVE") {
+    logger.warn(`Refreshing Token Failed : User is not active - ${user.email}`);
+    throw new ApiError(403, "User is not active. Please contact support.");
+  }
+
   const accessToken = await generateAccessToken({
     id: user.id,
     email: user.email,
     role: user.role,
     sessionId: session.id,
+    status: user.status,
   });
   const accessTokenOptions = cookieOptions(15);
 
@@ -289,6 +302,7 @@ export const refreshAccessTokenService = async ({ token, incomingIp, userAgent }
     email: user.email,
     role: user.role,
     sessionId: session.id,
+    status: user.status,
   });
   const refreshTokenOptions = cookieOptions(60 * 24 * 7);
 
