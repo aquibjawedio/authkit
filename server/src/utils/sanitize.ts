@@ -1,4 +1,4 @@
-import { User } from "../generated/prisma/index.js";
+import { Session, User } from "../generated/prisma/index.js";
 
 export const sanitizeUser = ({
   id,
@@ -27,6 +27,17 @@ export const sanitizeUser = ({
     bio,
     lastLogin,
     socialMedia,
+    createdAt,
+    updatedAt,
+  };
+};
+
+export const sanitizeSession = ({ id, userId, city, browser, createdAt, updatedAt }: Session) => {
+  return {
+    id,
+    userId,
+    city,
+    browser,
     createdAt,
     updatedAt,
   };
