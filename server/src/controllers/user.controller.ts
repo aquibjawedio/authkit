@@ -9,7 +9,6 @@ import {
   getMyAllSessionSchema,
   getMySessionByIdSchema,
   getUserByIdSchema,
-  restrictUserByIdSchema,
 } from "../schemas/user.schema.js";
 import {
   deleteMyAllSessionsService,
@@ -20,7 +19,6 @@ import {
   getMyAllSessionsService,
   getMySessionByIdService,
   getUserByIdService,
-  restrictUserByIdService,
 } from "../services/user.service.js";
 
 export const getMeController = asyncHandler(async (req: Request, res: Response) => {
@@ -109,21 +107,6 @@ export const getUserByIdController = asyncHandler(async (req: Request, res: Resp
   return res
     .status(200)
     .json(new ApiResponse(200, "User information fetched successfully", { user }));
-});
-
-export const restrictUserByIdController = asyncHandler(async (req: Request, res: Response) => {
-  const { data } = restrictUserByIdSchema.safeParse({
-    userId: req.params.userId,
-    ...req.body,
-  });
-
-  if (data.userId === req.user?.id) {
-    return res.status(400).json(new ApiResponse(400, "Cannot restrict your own account", {}));
-  }
-
-  const user = await restrictUserByIdService(data);
-
-  return res.status(200).json(new ApiResponse(200, "User status updated successfully", { user }));
 });
 
 /* 

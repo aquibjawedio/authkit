@@ -6,29 +6,16 @@ interface JwtOptionsDTO {
   email: string;
   role: "USER" | "MOD" | "ADMIN";
   sessionId: string;
-  status: "ACTIVE" | "SUSPENDED" | "DEACTIVATED" | "BANNED";
 }
 
-export const generateAccessToken = async ({
-  id,
-  email,
-  role,
-  sessionId,
-  status,
-}: JwtOptionsDTO) => {
-  return jwt.sign({ id, email, role, sessionId, status }, env.ACCESS_TOKEN_SECRET, {
+export const generateAccessToken = async ({ id, email, role, sessionId }: JwtOptionsDTO) => {
+  return jwt.sign({ id, email, role, sessionId }, env.ACCESS_TOKEN_SECRET, {
     expiresIn: env.ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"],
   });
 };
 
-export const generateRefreshToken = async ({
-  id,
-  email,
-  role,
-  sessionId,
-  status,
-}: JwtOptionsDTO) => {
-  return jwt.sign({ id, email, role, sessionId, status }, env.REFRESH_TOKEN_SECRET, {
+export const generateRefreshToken = async ({ id, email, role, sessionId }: JwtOptionsDTO) => {
+  return jwt.sign({ id, email, role, sessionId }, env.REFRESH_TOKEN_SECRET, {
     expiresIn: env.REFRESH_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"],
   });
 };

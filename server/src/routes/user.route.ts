@@ -8,7 +8,6 @@ import {
   getMyAllSessionController,
   getMySessionByIdController,
   getUserByIdController,
-  restrictUserByIdController,
 } from "../controllers/user.controller.js";
 import { isAdmin, isLoggedIn, isModOrAdmin } from "../middlewares/auth.middleware.js";
 
@@ -27,7 +26,6 @@ userRouter.route("/me/sessions/:sessionId").delete(isLoggedIn, deleteMySessionBy
 
 userRouter.route("/").get(isLoggedIn, isModOrAdmin, getAllUsersController);
 userRouter.route("/:userId").get(isLoggedIn, isModOrAdmin, getUserByIdController);
-userRouter.route("/:userId").patch(isLoggedIn, isModOrAdmin, restrictUserByIdController);
 
 // Admin Only Routes
 userRouter.route("/:userId").delete(isLoggedIn, isAdmin, deleteUserByIdController);

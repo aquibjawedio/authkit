@@ -14,60 +14,43 @@ enum UserRole {
   ADMIN
 }
 
-enum UserStatus {
-  ACTIVE
-  SUSPENDED
-  BANNED
-  DEACTIVATED
-}
-
 model User {
-  id                        String     @id @default(uuid())
-  fullname                  String
-  username                  String     @unique
-  email                     String     @unique
-  password                  String
-  role                      UserRole   @default(USER)
-  avatarUrl                 String?
-  bio                       String?
-  socialMedia               Json?
-  isEmailVerified           Boolean    @default(false)
-  emailVerificationToken    String?
-  emailVerificationExpiry   DateTime?
-  forgotPasswordToken       String?
-  forgotPasswordExpiry      DateTime?
-  lastLogin                 DateTime?
-  loginAttempts             Int        @default(0)
-  lockoutExpiry             DateTime?
-  status                    UserStatus @default(ACTIVE)
-  emailNotificationsEnabled Boolean    @default(true)
-  isDeleted                 Boolean    @default(false)
-  deletedAt                 DateTime?
-  createdAt                 DateTime   @default(now())
-  updatedAt                 DateTime   @updatedAt
-  sessions                  Session[]
+  id                      String    @id @default(uuid())
+  fullname                String
+  username                String    @unique
+  email                   String    @unique
+  password                String
+  role                    UserRole  @default(USER)
+  avatarUrl               String?
+  bio                     String?
+  socialMedia             Json?
+  isEmailVerified         Boolean   @default(false)
+  emailVerificationToken  String?
+  emailVerificationExpiry DateTime?
+  forgotPasswordToken     String?
+  forgotPasswordExpiry    DateTime?
+  lastLogin               DateTime?
+  loginAttempts           Int       @default(0)
+  isDeleted               Boolean   @default(false)
+  deletedAt               DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  sessions                Session[]
 
   @@index([email])
   @@index([username])
   @@index([role])
-  @@index([status])
 }
 
 model Session {
   id           String    @id @default(uuid())
   refreshToken String?   @unique
-  userAgent    String
-  device       String
-  os           String
-  browser      String
-  ipAddress    String
-  country      String
-  region       String
-  regionName   String
-  city         String
-  zip          Int
-  timezone     String
-  isRevoked    Boolean   @default(false)
+  userAgent    String?
+  device       String?
+  os           String?
+  browser      String?
+  ipAddress    String?
+  isValid      Boolean   @default(true)
   user         User      @relation(fields: [userId], references: [id])
   userId       String
   createdAt    DateTime  @default(now())

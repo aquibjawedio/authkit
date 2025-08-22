@@ -16,7 +16,7 @@ export const sendEmail = async ({ email, subject, mailGenContent }: ISendEmailIn
     theme: "salted",
     product: {
       name: "AuthKit",
-      link: "https://authkit.com/",
+      link: "https://authkit.com",
       copyright: `Copyright © ${new Date().getFullYear()} AuthKit. All rights reserved.`,
     },
   });

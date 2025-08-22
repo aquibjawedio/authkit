@@ -6,7 +6,6 @@ import {
   GetMySessionByIdDTO,
   DeleteMySessionByIdDTO,
   GetUserByIdDTO,
-  RestrictUserByIdDTO,
   DeleteUserByIdDTO,
 } from "../schemas/user.schema.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -40,7 +39,7 @@ export const getMyAllSessionsService = async ({ userId }: GetMyAllSessionDTO) =>
   const sessions = await prisma.session.findMany({
     where: {
       userId: userId,
-      isRevoked: false,
+      isValid: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -67,13 +66,13 @@ export const deleteMyAllSessionsService = async ({ userId, sessionId }: DeleteMy
   const result = await prisma.session.updateMany({
     where: {
       userId: userId,
-      isRevoked: false,
+      isValid: true,
       id: {
         not: sessionId,
       },
     },
     data: {
-      isRevoked: true,
+      isValid: false,
     },
   });
 
@@ -97,7 +96,7 @@ export const getMySessionByIdService = async ({ userId, sessionId }: GetMySessio
     where: {
       id: sessionId,
       userId: userId,
-      isRevoked: false,
+      isValid: true,
     },
   });
 
@@ -120,10 +119,10 @@ export const deleteMySessionByIdService = async ({ userId, sessionId }: DeleteMy
     where: {
       id: sessionId,
       userId: userId,
-      isRevoked: false,
+      isValid: true,
     },
     data: {
-      isRevoked: true,
+      isValid: false,
     },
   });
 
@@ -175,54 +174,6 @@ export const getUserByIdService = async ({ userId }: GetUserByIdDTO) => {
   return sanitizeUser(user);
 };
 
-export const restrictUserByIdService = async ({ userId, status }: RestrictUserByIdDTO) => {
-  logger.info(`Attempt To Restrict User : Restricting user with id - ${userId}`);
-
-  const lockOutTime = {
-    BANNED: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    SUSPENDED: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    DEACTIVATED: null,
-    ACTIVE: null,
-  };
-  logger.error(`Invalid status provided: ${status}`);
-
-  const user = await prisma.user.update({
-    where: {
-      id: userId,
-    },
-    data: {
-      status: status,
-      lockoutExpiry: lockOutTime[status] || null,
-    },
-  });
-
-  if (!user) {
-    logger.error(`Failed To Restrict User : User with id - ${userId} not found`);
-    throw new ApiError(404, "User not found");
-  }
-
-  if (status === user.status) {
-    logger.warn(`User with id - ${userId} is already in status - ${status}`);
-    return sanitizeUser(user);
-  }
-
-  const sessions = await prisma.session.updateMany({
-    where: {
-      userId: userId,
-      isRevoked: false,
-    },
-    data: {
-      isRevoked: true,
-    },
-  });
-  if (sessions.count > 0) {
-    logger.info(`Revoked ${sessions.count} active sessions for user with id - ${userId}`);
-  }
-
-  logger.info(`Successfully Restricted User : User with id - ${userId} restricted`);
-  return sanitizeUser(user);
-};
-
 // Admin Only Services
 
 export const deleteUserByIdService = async ({ userId }: DeleteUserByIdDTO) => {
@@ -234,8 +185,6 @@ export const deleteUserByIdService = async ({ userId }: DeleteUserByIdDTO) => {
     },
     data: {
       isDeleted: true,
-      status: "DEACTIVATED",
-      lockoutExpiry: null,
     },
   });
 
@@ -252,10 +201,10 @@ export const deleteUserByIdService = async ({ userId }: DeleteUserByIdDTO) => {
   const sessions = await prisma.session.updateMany({
     where: {
       userId: userId,
-      isRevoked: false,
+      isValid: true,
     },
     data: {
-      isRevoked: true,
+      isValid: false,
     },
   });
   if (sessions.count > 0) {

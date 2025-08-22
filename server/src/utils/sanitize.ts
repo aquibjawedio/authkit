@@ -7,7 +7,6 @@ export const sanitizeUser = ({
   email,
   role,
   isEmailVerified,
-  status,
   avatarUrl,
   bio,
   lastLogin,
@@ -22,7 +21,6 @@ export const sanitizeUser = ({
     email,
     role,
     isEmailVerified,
-    status,
     avatarUrl,
     bio,
     lastLogin,
@@ -32,11 +30,10 @@ export const sanitizeUser = ({
   };
 };
 
-export const sanitizeSession = ({ id, userId, city, browser, createdAt, updatedAt }: Session) => {
+export const sanitizeSession = ({ id, userId, browser, createdAt, updatedAt }: Session) => {
   return {
     id,
     userId,
-    city,
     browser,
     createdAt,
     updatedAt,

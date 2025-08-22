@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { UAParser } from "ua-parser-js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   loginSchema,
@@ -20,9 +19,6 @@ import {
 import { ApiError } from "../utils/ApiError.js";
 import { logger } from "../utils/logger.js";
 
-/* 
-  Register user with fullname, user name , email and password.
-*/
 export const registerController = asyncHandler(async (req: Request, res: Response) => {
   const { data } = registerSchema.safeParse(req.body);
 
@@ -31,9 +27,6 @@ export const registerController = asyncHandler(async (req: Request, res: Respons
   res.status(201).json(new ApiResponse(201, "User registered successfully", { user }));
 });
 
-/* 
-  After registering user, now verify email sent on email.
-*/
 export const verifyEmailController = asyncHandler(async (req: Request, res: Response) => {
   const { data } = verifyEmailSchema.safeParse({ token: req.params.token });
 
@@ -42,9 +35,6 @@ export const verifyEmailController = asyncHandler(async (req: Request, res: Resp
   return res.status(200).json(new ApiResponse(200, "Email verification successfull", { user }));
 });
 
-/* 
-  Now user can login with the same credentials.
-*/
 export const loginController = asyncHandler(async (req: Request, res: Response) => {
   const { data } = loginSchema.safeParse(req.body);
 
@@ -61,18 +51,8 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
   const ipAddress = req.ip || req.socket.remoteAddress;
   const userAgent = req.headers["user-agent"];
 
-  const ua = UAParser(req.headers["user-agent"]);
-
-  const uaData: SessionDTO = {
-    ipAddress,
-    userAgent,
-    device: ua.device.type || "desktop",
-    os: `${ua.os.name} ${ua.os.version}`,
-    browser: `${ua.browser.name} ${ua.browser.version}`,
-  };
-
   const { user, accessToken, accessTokenOptions, refreshToken, refreshTokenOptions } =
-    await loginService(data, uaData);
+    await loginService(data, ipAddress, userAgent);
 
   return res
     .status(200)
@@ -81,9 +61,6 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
     .json(new ApiResponse(200, "User logged in successfully", { user }));
 });
 
-/* 
-  Now user can login with the same credentials.
-*/
 export const refreshAccessTokenController = asyncHandler(async (req: Request, res: Response) => {
   if (!req.cookies?.refreshToken) {
     logger.error("Refreshing Failed : Missing refresh token");
@@ -92,12 +69,13 @@ export const refreshAccessTokenController = asyncHandler(async (req: Request, re
 
   const { data } = refreshAccessTokenSchema.safeParse({
     token: req.cookies.refreshToken,
-    incomingIp: req.ip || req.socket.remoteAddress,
-    userAgent: req.headers["user-agent"],
   });
 
+  const ipAddress = req.ip || req.socket.remoteAddress;
+  const userAgent = req.headers["user-agent"];
+
   const { user, accessToken, accessTokenOptions, refreshToken, refreshTokenOptions } =
-    await refreshAccessTokenService(data);
+    await refreshAccessTokenService(data, ipAddress, userAgent, res);
 
   return res
     .status(200)
@@ -105,10 +83,6 @@ export const refreshAccessTokenController = asyncHandler(async (req: Request, re
     .cookie("refreshToken", refreshToken, refreshTokenOptions)
     .json(new ApiResponse(200, "Access token refreshed successfully", { user }));
 });
-
-/* 
-  Now a logged in user can log out.
-*/
 
 export const logoutController = asyncHandler(async (req: Request, res: Response) => {
   const { data } = logoutSchema.safeParse({
