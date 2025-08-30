@@ -40,12 +40,12 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
 
   if (req.cookies.accessToken && req.cookies.refreshToken) {
     logger.warn(`Login Attempt Failed: User is already logged in with email - ${data.email}`);
-    throw new ApiError(403, "User is already logged in with this email");
+    throw new ApiError(403, "User is already logged in");
   }
 
   if (req.cookies.refreshToken) {
     logger.warn(`Login Attempt Failed: User is already logged in with email - ${data.email}`);
-    throw new ApiError(403, "User is already logged in with this email");
+    throw new ApiError(403, "User is already logged in");
   }
 
   const ipAddress = req.ip || req.socket.remoteAddress;
