@@ -1,89 +1,160 @@
-import { axiosClient } from "@/api/axiosClient";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Eye, EyeOff, LockKeyhole, LogIn, Mail } from "lucide-react";
 import { useState } from "react";
-
-interface ErrorDTO {
-  response: {
-    data?: {
-      message?: string;
-    };
-  };
-}
+import { Link } from "@tanstack/react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema, type LoginFormDTO } from "@/schemas/authSchema";
+import { axiosClient } from "@/api/axiosClient";
 
 const LoginForm = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ErrorDTO>();
+  const [hidePassword, setHidePassword] = useState(true);
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting, isSubmitted },
+  } = useForm({ resolver: zodResolver(loginSchema) });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("FORM DATA : ", formData);
-    try {
-      setLoading(true);
-      const user = await axiosClient.post("/auth/login", formData);
-      console.log("USER : ", user);
-      setLoading(false);
-    } catch (error) {
-      setError(error as ErrorDTO);
-      setLoading(false);
-    }
+  const onSubmit = async (data: LoginFormDTO) => {
+    console.log("Login data submitted:", data);
+    await axiosClient.post("/auth/login", data);
   };
-
-  const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  if (loading) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center">
-        <Loader2 className="w-4 h-4 animate-spin" />
-      </div>
-    );
-  }
-
-  if (error) {
-    console.log("IF ERROR : ", error);
-    return (
-      <div className="bg-red-400 font-semibold text-2xl p-2 ">
-        {error?.response?.data?.message ||
-          "Something went wrong while logging in."}
-      </div>
-    );
-  }
 
   return (
-    <div className="w-fit p-2 bg-red-300">
-      <h1> Welcome Back</h1>
+    <Card className="w-full max-w-md overflow-hidden p-0 shadow-lg">
+      <CardContent className="grid p-0">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 md:p-8">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col items-center text-center">
+              <h1 className="text-2xl font-bold">Welcome back</h1>
+              <p className="text-muted-foreground text-balance">
+                Login to your Auth Kit account
+              </p>
+            </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="flex flex-col">
-          <label htmlFor="">Enter your email</label>
-          <input
-            type="email"
-            name="email"
-            className="border "
-            value={formData.email}
-            onChange={handleOnChange}
-          />
-        </div>
-        <div className="flex flex-col">
-          <label htmlFor="">Enter your password</label>
-          <input
-            type="password"
-            name="password"
-            className="border"
-            value={formData.password}
-            onChange={handleOnChange}
-          />
-        </div>
+            <div className="grid gap-3">
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="absolute left-0  top-1/2 -translate-y-1/2 bg-transparent hover:bg-transparent"
+                >
+                  <Mail className="w-5 h-5" />
+                </Button>
+                <Input
+                  id="email"
+                  type="email"
+                  {...register("email")}
+                  placeholder="Enter your email"
+                  required
+                  className="pl-10"
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm">{errors.email.message}</p>
+                )}
+              </div>
+            </div>
 
-        <button type="submit">Login</button>
-      </form>
-    </div>
+            <div className="grid gap-3">
+              <div className="flex items-center">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  to="/auth/forgot"
+                  className="ml-auto text-sm underline-offset-2 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              <div className="relative">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="absolute left-0  top-1/2 -translate-y-1/2 bg-transparent hover:bg-transparent"
+                >
+                  <LockKeyhole className="w-5 h-5" />
+                </Button>
+                <Input
+                  id="password"
+                  type={hidePassword ? "password" : "text"}
+                  required
+                  {...register("password")}
+                  placeholder="Enter your password"
+                  className="pl-10 pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setHidePassword(!hidePassword)}
+                  className="absolute right-0  top-1/2 -translate-y-1/2 cursor-pointer bg-transparent hover:bg-transparent"
+                >
+                  {hidePassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </Button>
+                {errors.password && (
+                  <p className="text-red-500 text-sm absolute -bottom-6 left-0">
+                    {errors.password.message || "Password is required"}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full cursor-pointer mt-2"
+              disabled={isSubmitting || isSubmitted}
+            >
+              <LogIn className="w-5 h-5" /> Login
+            </Button>
+
+            <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+              <span className="bg-card text-muted-foreground relative z-10 px-2">
+                Or continue with
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              type="button"
+              className="w-full gap-2 cursor-pointer"
+              onClick={() =>
+                (window.location.href = `${
+                  import.meta.env.VITE_BACKEND_URL
+                }/api/v1/auth/google`)
+              }
+              disabled={isSubmitting || isSubmitted}
+            >
+              <img
+                width="48"
+                height="48"
+                src="https://img.icons8.com/color/48/google-logo.png"
+                alt="google-logo"
+                className="w-6 h-6"
+              />
+              <span>Continue with Google</span>
+            </Button>
+
+            <div className="text-sm text-center text-muted-foreground">
+              <span>Don't have an account?</span>{" "}
+              <Link
+                to="/auth/register"
+                className="hover:underline underline-offset-4 ml-1 text-primary"
+              >
+                Register
+              </Link>
+            </div>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

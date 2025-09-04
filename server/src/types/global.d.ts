@@ -1,4 +1,4 @@
-export interface AuthTokenPayload {
+export interface AppUser {
   id: string;
   email: string;
   role: string;
@@ -9,10 +9,10 @@ export interface AuthTokenPayload {
 
 declare global {
   namespace Express {
+    interface User extends AppUser {}
     interface Request {
-      user?: AuthTokenPayload;
+      user?: AppUser;
     }
   }
 }
-
 export {};

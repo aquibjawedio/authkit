@@ -4,7 +4,8 @@ import { logger } from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
 import { clearCookieOptions } from "../config/cookie.js";
 import { verifyJWTAccessToken } from "../utils/jwt.js";
-import { AuthTokenPayload } from "../types/global.js";
+import { AppUser } from "../types/global.js";
+import { UserRole } from "../generated/prisma/index.js";
 
 export const isLoggedIn = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const refreshToken = req.cookies?.refreshToken;
@@ -23,14 +24,14 @@ export const isLoggedIn = asyncHandler(async (req: Request, res: Response, next:
     throw new ApiError(401, "ACCESS TOKEN EXPIRED");
   }
 
-  let decoded: AuthTokenPayload;
+  let decoded: AppUser;
 
   try {
     const verifiedData = verifyJWTAccessToken(accessToken);
     if (typeof verifiedData === "string") {
       throw new Error("Invalid token payload");
     }
-    decoded = verifiedData as AuthTokenPayload;
+    decoded = verifiedData as AppUser;
   } catch (err) {
     logger.warn("Access token verification failed.");
     throw new ApiError(401, "Invalid access token.", err);
@@ -42,7 +43,7 @@ export const isLoggedIn = asyncHandler(async (req: Request, res: Response, next:
 
 export const isModOrAdmin = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    if (req.user?.role !== "MOD" && req.user?.role !== "ADMIN") {
+    if (req.user?.role !== UserRole.MOD && req.user?.role !== UserRole.ADMIN) {
       console.log("User role:", req.user?.role);
       logger.warn(`User with ID ${req.user?.id} is not authorized to access this resource`);
       throw new ApiError(403, "Forbidden! You do not have permission to access this resource");
@@ -52,7 +53,7 @@ export const isModOrAdmin = asyncHandler(
 );
 
 export const isAdmin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  if (req.user?.role !== "ADMIN") {
+  if (req.user?.role !== UserRole.ADMIN) {
     logger.warn(`User with ID ${req.user?.id} is not authorized to access this resource`);
     throw new ApiError(403, "Forbidden! You do not have permission to access this resource");
   }

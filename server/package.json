@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
- "scripts": {
+  "scripts": {
     "build": "tsc && cp -r src/generated dist/generated",
     "start": "node dist/index.js",
     "postinstall": "prisma generate && prisma migrate deploy",
@@ -23,6 +23,8 @@
     "jsonwebtoken": "^9.0.2",
     "mailgen": "^2.0.29",
     "nodemailer": "^7.0.5",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "resend": "^4.7.0",
     "ua-parser-js": "^2.0.4",
     "winston": "^3.17.0",
@@ -35,6 +37,8 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.1.0",
     "@types/nodemailer": "^6.4.17",
+    "@types/passport": "^1.0.17",
+    "@types/passport-google-oauth20": "^2.0.16",
     "prettier": "^3.6.2",
     "prisma": "^6.15.0",
     "tsx": "^4.20.3",

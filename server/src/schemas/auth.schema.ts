@@ -32,8 +32,18 @@ export const logoutSchema = z.object({
   refreshToken: z.string().trim().min(1, "Refresh token is required"),
 });
 
+export const googleOAuthUserSchema = z.object({
+  id: z.string(),
+  fullName: z.string().min(1),
+  email: z.email(),
+  avatar: z.string(),
+  role: z.enum(["USER", "ADMIN"]).default("USER"),
+  sessionId: z.string().optional(),
+});
+
 export type RegisterDTO = z.infer<typeof registerSchema>;
 export type VerifyEmailDTO = z.infer<typeof verifyEmailSchema>;
 export type RefreshDTO = z.infer<typeof refreshAccessTokenSchema>;
 export type LogoutDTO = z.infer<typeof logoutSchema>;
 export type LoginDTO = z.infer<typeof loginSchema>;
+export type googleOAuthUser = z.infer<typeof googleOAuthUserSchema>;

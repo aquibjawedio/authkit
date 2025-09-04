@@ -6,6 +6,7 @@ import { healthRouter } from "./routes/health.route.js";
 import { authRouter } from "./routes/auth.route.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { userRouter } from "./routes/user.route.js";
+import "./config/passport.js";
 
 const app = express();
 

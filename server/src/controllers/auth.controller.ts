@@ -1,15 +1,16 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
+  googleOAuthUser,
   loginSchema,
   logoutSchema,
   refreshAccessTokenSchema,
   registerSchema,
-  SessionDTO,
   verifyEmailSchema,
 } from "../schemas/auth.schema.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import {
+  googleAuthCallbackService,
   loginService,
   logoutService,
   refreshAccessTokenService,
@@ -18,6 +19,8 @@ import {
 } from "../services/auth.service.js";
 import { ApiError } from "../utils/ApiError.js";
 import { logger } from "../utils/logger.js";
+import passport, { Profile } from "passport";
+import { env } from "../config/env.js";
 
 export const registerController = asyncHandler(async (req: Request, res: Response) => {
   const { data } = registerSchema.safeParse(req.body);
@@ -97,3 +100,33 @@ export const logoutController = asyncHandler(async (req: Request, res: Response)
     .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, "User logged out successfully"));
 });
+
+/* CONTINUE WITH GOOGLE */
+
+export const googleAuthController = passport.authenticate("google", {
+  scope: ["profile", "email"],
+  prompt: "select_account",
+});
+
+export const googleAuthCallbackController = (req: Request, res: Response, next: NextFunction) => {
+  passport.authenticate(
+    "google",
+    { session: false, failureRedirect: "/auth/login" },
+    async (err, profile: googleOAuthUser, info) => {
+      if (err) return next(err);
+      if (!profile) return res.redirect("/auth/login");
+
+      try {
+        const { accessToken, refreshToken, accessTokenOptions, refreshTokenOptions } =
+          await googleAuthCallbackService(profile);
+
+        res.cookie("accessToken", accessToken, accessTokenOptions);
+        res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+
+        res.redirect(`${env.FRONTEND_URL}/profile`);
+      } catch (error) {
+        next(error);
+      }
+    }
+  )(req, res, next);
+};

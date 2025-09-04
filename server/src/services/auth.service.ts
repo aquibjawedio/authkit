@@ -2,6 +2,7 @@ import { UAParser } from "ua-parser-js";
 
 import { prisma } from "../config/prisma.js";
 import {
+  googleOAuthUser,
   LoginDTO,
   LogoutDTO,
   RefreshDTO,
@@ -23,6 +24,7 @@ import { env } from "../config/env.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/jwt.js";
 import { cookieOptions } from "../config/cookie.js";
 import { Response } from "express";
+import { Profile } from "passport";
 
 export const registerService = async ({ fullname, username, email, password }: RegisterDTO) => {
   logger.info(`Attempt to register user : email - ${email}`);
@@ -355,4 +357,59 @@ export const logoutService = async ({ refreshToken }: LogoutDTO) => {
 
   logger.info(`Logout Successfull : User logged out with access token - ${refreshToken}`);
   return { options: cookieOptions(0) };
+};
+
+export const googleAuthCallbackService = async (profile: googleOAuthUser) => {
+  let user = await prisma.user.findUnique({
+    where: {
+      email: profile.email,
+    },
+  });
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        email: profile.email,
+        fullname: profile.fullName,
+        username: profile.email.split("@")[0] + Math.floor(Math.random() * 1000),
+        avatarUrl: profile.avatar,
+        isEmailVerified: true,
+      },
+    });
+  }
+
+  const session = await prisma.session.create({
+    data: {
+      userId: user.id,
+      isValid: true,
+    },
+  });
+
+  const accessToken = await generateAccessToken({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    sessionId: session.id,
+  });
+  const accessTokenOptions = cookieOptions(15);
+
+  const refreshToken = await generateRefreshToken({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    sessionId: session.id,
+  });
+  const refreshTokenOptions = cookieOptions(60 * 24 * 7);
+
+  await prisma.session.update({
+    where: {
+      id: session.id,
+    },
+    data: {
+      refreshToken: createCryptoHash(refreshToken),
+      isValid: true,
+    },
+  });
+
+  return { accessToken, refreshToken, accessTokenOptions, refreshTokenOptions };
 };

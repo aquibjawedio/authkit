@@ -7,7 +7,7 @@ CREATE TABLE "public"."User" (
     "fullname" TEXT NOT NULL,
     "username" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
+    "password" TEXT,
     "role" "public"."UserRole" NOT NULL DEFAULT 'USER',
     "avatarUrl" TEXT,
     "bio" TEXT,
