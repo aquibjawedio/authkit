@@ -6,5 +6,9 @@ export const Route = createFileRoute("/")({
 });
 
 function RouteComponent() {
-  return <App />;
+  return (
+    <div className="bg-background text-foreground min-h-screen flex flex-col">
+      <App />
+    </div>
+  );
 }
