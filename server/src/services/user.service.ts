@@ -9,6 +9,7 @@ import {
   DeleteUserByIdDTO,
 } from "../schemas/user.schema.js";
 import { ApiError } from "../utils/ApiError.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { logger } from "../utils/logger.js";
 import { sanitizeSession, sanitizeUser } from "../utils/sanitize.js";
 
@@ -28,6 +29,42 @@ export const getMeService = async ({ userId }: GetMeDTO) => {
 
   logger.info(`Successfully Fetched User Info : User with id - ${userId} found`);
 
+  return sanitizeUser(user);
+};
+
+export const updateMyAvatarService = async ({
+  userId,
+  avatarFilePath,
+}: {
+  userId: string;
+  avatarFilePath: string;
+}) => {
+  logger.info(`Attempt To Update User Avatar : Updating avatar for user with id - ${userId}`);
+
+  const safeUrl = await uploadOnCloudinary(avatarFilePath);
+
+  if (!safeUrl) {
+    logger.error(
+      `Failed To Update User Avatar : Error uploading avatar for user with id - ${userId}`
+    );
+    throw new ApiError(500, "Error uploading avatar");
+  }
+
+  const user = await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      avatarUrl: safeUrl,
+    },
+  });
+
+  if (!user) {
+    logger.error(`Failed To Update User Avatar : User with id - ${userId} not found`);
+    throw new ApiError(404, "User not found");
+  }
+
+  logger.info(`Successfully Updated User Avatar : Avatar updated for user with id - ${userId}`);
   return sanitizeUser(user);
 };
 

@@ -16,12 +16,19 @@ import {
 } from "lucide-react";
 import { useRef } from "react";
 import type { User as UserType } from "@/redux/auth/userAuthSlice";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/redux/store";
+import { uploadAvatar } from "@/redux/auth/authThunks";
+import SpinLoader from "../shared/SpinLoader";
 
 interface PersonalTabProps {
   user: UserType | null;
 }
 
 const PersonalTab = ({ user }: PersonalTabProps) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading, error } = useSelector((state: RootState) => state.auth);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleAvatarClick = () => {
@@ -33,13 +40,21 @@ const PersonalTab = ({ user }: PersonalTabProps) => {
     if (file) {
       console.log("Selected avatar file:", file);
     }
+
+    if (!file?.type.startsWith("image/")) {
+      alert("Please upload a valid image file.");
+      return;
+    }
   };
 
   const handleAvatarUpload = () => {
     if (fileInputRef.current?.files?.[0]) {
-      console.log("Uploading avatar:", fileInputRef.current.files[0]);
+      const file = fileInputRef.current.files[0];
+      console.log("Uploading avatar file:", file);
+      dispatch(uploadAvatar(file));
     }
   };
+
   return (
     <div>
       <div className="flex flex-col items-center gap-4">
@@ -63,9 +78,19 @@ const PersonalTab = ({ user }: PersonalTabProps) => {
           className="cursor-pointer"
           onClick={handleAvatarUpload}
         >
-          <ImageUp className="w-4 h-4" />
-          Upload Avatar
+          {loading ? (
+            <div className="flex items-center justify-center gap-2 w-20">
+              <SpinLoader />
+            </div>
+          ) : (
+            <>
+              <ImageUp className="w-4 h-4" />
+              Upload Avatar
+            </>
+          )}
         </Button>
+
+        {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
 
       <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>

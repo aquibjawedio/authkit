@@ -19,6 +19,7 @@ import {
   getMyAllSessionsService,
   getMySessionByIdService,
   getUserByIdService,
+  updateMyAvatarService,
 } from "../services/user.service.js";
 
 export const getMeController = asyncHandler(async (req: Request, res: Response) => {
@@ -37,7 +38,19 @@ export const updateMyEmailController = asyncHandler(async (req: Request, res: Re
 
 export const updateMyPasswordController = asyncHandler(async (req: Request, res: Response) => {});
 
-export const updateMyAvatarController = asyncHandler(async (req: Request, res: Response) => {});
+export const updateMyAvatarController = asyncHandler(async (req: Request, res: Response) => {
+  const { userId, avatarFilePath } = { userId: req.user?.id, avatarFilePath: req.file?.path };
+  if (!userId) {
+    return res.status(400).json(new ApiResponse(400, "User ID is required", {}));
+  }
+  if (!avatarFilePath) {
+    console.log("Avatar file is missing in the request", req.file);
+    return res.status(400).json(new ApiResponse(400, "Avatar file is required", {}));
+  }
+  const user = await updateMyAvatarService({ userId, avatarFilePath });
+
+  return res.status(200).json(new ApiResponse(200, "User avatar updated successfully", { user }));
+});
 
 // For session management
 export const getMyAllSessionController = asyncHandler(async (req: Request, res: Response) => {

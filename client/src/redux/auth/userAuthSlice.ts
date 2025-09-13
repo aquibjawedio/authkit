@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { fetchUser, loginUser, verifyEmail } from "./authThunks";
+import { fetchUser, loginUser, uploadAvatar, verifyEmail } from "./authThunks";
 
 export interface User {
   _id: string;
@@ -103,6 +103,23 @@ export const userAuthSlice = createSlice({
       })
 
       .addCase(fetchUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // upload avatar
+      .addCase(uploadAvatar.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
+      .addCase(uploadAvatar.fulfilled, (state, action: PayloadAction<User>) => {
+        state.loading = false;
+        state.user = action.payload;
+        state.error = null;
+      })
+
+      .addCase(uploadAvatar.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

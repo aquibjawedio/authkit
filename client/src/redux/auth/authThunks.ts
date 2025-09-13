@@ -50,3 +50,27 @@ export const fetchUser = createAsyncThunk<User, void, { rejectValue: string }>(
     }
   }
 );
+
+export const uploadAvatar = createAsyncThunk<
+  User,
+  File,
+  { rejectValue: string }
+>("users/me/avatar", async (avatar, thunkAPI) => {
+  try {
+    const formData = new FormData();
+    formData.append("avatar", avatar);
+
+    const res = await axiosClient.post("/users/me/avatar", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    console.log("Avatar upload response:", res);
+    const { user } = res.data.data;
+    return user as User;
+  } catch (error: unknown) {
+    const err = error as ApiError;
+    return thunkAPI.rejectWithValue(
+      err.response?.data?.message || "Avatar upload failed"
+    );
+  }
+});
