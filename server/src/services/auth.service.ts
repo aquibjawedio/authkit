@@ -91,7 +91,7 @@ export const VerifyEmailService = async ({ token }: VerifyEmailDTO) => {
 
   if (!user) {
     logger.error(`Invalid Request : User not found for this token - ${token}`);
-    throw new ApiError(400, "User not found with this token");
+    throw new ApiError(400, "Invalid verification link or user is already verified");
   }
 
   if (user.isEmailVerified) {
@@ -121,7 +121,10 @@ export const VerifyEmailService = async ({ token }: VerifyEmailDTO) => {
       },
     });
 
-    throw new ApiError(401, "Token expired. A new verification link has been sent to your email.");
+    throw new ApiError(
+      401,
+      "Verification link expired, we have sent a new verification link. Please check you inbox"
+    );
   }
 
   const updatedUser = await prisma.user.update({

@@ -3,15 +3,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, LockKeyhole, LogIn, Mail } from "lucide-react";
-import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormDTO } from "@/schemas/authSchema";
-import { axiosClient } from "@/api/axiosClient";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/redux/store";
+import { loginUser } from "@/redux/auth/authThunks";
+import SpinLoader from "../shared/SpinLoader";
 
 const LoginForm = () => {
   const [hidePassword, setHidePassword] = useState(true);
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading, error, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   const {
     register,
@@ -20,9 +28,19 @@ const LoginForm = () => {
   } = useForm({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = async (data: LoginFormDTO) => {
-    console.log("Login data submitted:", data);
-    await axiosClient.post("/auth/login", data);
+    dispatch(loginUser(data));
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate({ to: "/profile" });
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (error) {
+    console.log("ERROR : ", error);
+    return <div className="bg-red-700">{error} </div>;
+  }
 
   return (
     <Card className="w-full max-w-md overflow-hidden p-0 shadow-lg">
@@ -112,7 +130,14 @@ const LoginForm = () => {
               className="w-full cursor-pointer mt-2"
               disabled={isSubmitting || isSubmitted}
             >
-              <LogIn className="w-5 h-5" /> Login
+              {isSubmitting || loading ? (
+                <SpinLoader />
+              ) : (
+                <div className="flex gap-2 items-center justify-center">
+                  <LogIn className="w-5 h-5" />
+                  Login
+                </div>
+              )}
             </Button>
 
             <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">

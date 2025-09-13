@@ -1,39 +1,22 @@
-import { axiosClient } from "@/api/axiosClient";
+import SpinLoader from "@/components/shared/SpinLoader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { RootState } from "@/redux/store";
 import { createFileRoute } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 export const Route = createFileRoute("/profile")({
   component: RouteComponent,
 });
 
-interface UserDTO {
-  fullname: string;
-  username: string;
-  email: string;
-  role: string;
-  avatarUrl: string;
-}
-
 function RouteComponent() {
-  const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<UserDTO>();
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const res = await axiosClient.get("/users/me");
-      setLoading(false);
-      console.log(res);
-      setUser(res?.data?.data?.user);
-    })();
-  }, []);
+  const { user, loading } = useSelector((state: RootState) => state.auth);
 
   if (loading) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center">
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <SpinLoader />
       </div>
     );
   }
@@ -62,6 +45,9 @@ function RouteComponent() {
             <span className="font-medium text-foreground">Role:</span>{" "}
             {user?.role}
           </p>
+          <Button variant="outline" className="cursor-pointer">
+            {user.isEmailVerified ? "Verified" : "Not Verified"}
+          </Button>
         </CardContent>
       </Card>
     </div>
