@@ -9,6 +9,15 @@ export interface User {
   role: string;
   avatarUrl?: string;
   isEmailVerified: boolean;
+  lastLogin: string;
+  bio: string;
+  socialMedia: {
+    website?: string;
+    twitter?: string;
+    linkedin?: string;
+    instagram?: string;
+    github?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UserSettingsRouteImport } from './routes/user/settings'
 import { Route as AuthResendRouteImport } from './routes/auth/resend'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
@@ -25,6 +26,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserSettingsRoute = UserSettingsRouteImport.update({
+  id: '/user/settings',
+  path: '/user/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResendRoute = AuthResendRouteImport.update({
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/resend': typeof AuthResendRoute
+  '/user/settings': typeof UserSettingsRoute
   '/auth/verify/$token': typeof AuthVerifyTokenRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/resend': typeof AuthResendRoute
+  '/user/settings': typeof UserSettingsRoute
   '/auth/verify/$token': typeof AuthVerifyTokenRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/resend': typeof AuthResendRoute
+  '/user/settings': typeof UserSettingsRoute
   '/auth/verify/$token': typeof AuthVerifyTokenRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/resend'
+    | '/user/settings'
     | '/auth/verify/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/resend'
+    | '/user/settings'
     | '/auth/verify/$token'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/resend'
+    | '/user/settings'
     | '/auth/verify/$token'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
   AuthResendRoute: typeof AuthResendRoute
+  UserSettingsRoute: typeof UserSettingsRoute
   AuthVerifyTokenRoute: typeof AuthVerifyTokenRoute
 }
 
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/user/settings': {
+      id: '/user/settings'
+      path: '/user/settings'
+      fullPath: '/user/settings'
+      preLoaderRoute: typeof UserSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/resend': {
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
   AuthResendRoute: AuthResendRoute,
+  UserSettingsRoute: UserSettingsRoute,
   AuthVerifyTokenRoute: AuthVerifyTokenRoute,
 }
 export const routeTree = rootRouteImport
