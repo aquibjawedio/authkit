@@ -17,7 +17,7 @@ const LoginForm = () => {
   const [hidePassword, setHidePassword] = useState(true);
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { loading, error, isAuthenticated } = useSelector(
+  const { loading, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   );
 
@@ -36,11 +36,6 @@ const LoginForm = () => {
       navigate({ to: "/profile" });
     }
   }, [isAuthenticated, navigate]);
-
-  if (error) {
-    console.log("ERROR : ", error);
-    return <div className="bg-red-700">{error} </div>;
-  }
 
   return (
     <Card className="w-full max-w-md overflow-hidden p-0 shadow-lg">

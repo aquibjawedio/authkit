@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { RootState } from "@/redux/store";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSelector } from "react-redux";
 
 export const Route = createFileRoute("/profile")({
@@ -52,12 +52,18 @@ function RouteComponent() {
       </Card>
     </div>
   ) : (
-    <div className="w-full min-h-screen flex items-center justify-center bg-muted/30">
-      <Card className="p-6">
-        <CardContent>
-          <p className="text-destructive font-semibold text-lg">
-            USER NOT FOUND
+    <div className="min-h-screen flex items-center justify-center bg-muted/20 px-4">
+      <Card className="w-full max-w-sm shadow-md rounded-xl p-6 bg-background border border-border">
+        <CardContent className="flex flex-col items-center text-center space-y-4">
+          <p className="text-destructive font-bold text-xl">Not Logged In</p>
+          <p className="text-muted-foreground text-sm">
+            You must be logged in to access this page.
           </p>
+          <Link to="/auth/login" className="w-full">
+            <Button className="w-full mt-2 cursor-pointer" variant="default">
+              Go to Login
+            </Button>
+          </Link>
         </CardContent>
       </Card>
     </div>
