@@ -1,5 +1,3 @@
-# AuthKit
-
 <p align="center">
   <a href="https://nodejs.org/">
     <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
@@ -25,8 +23,11 @@
   <a href="https://reactjs.org/">
     <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
   </a>
-  <a href="https://github.com/pmndrs/zustand">
-    <img src="https://img.shields.io/badge/Zustand-000000?style=for-the-badge&logo=react&logoColor=white" alt="Zustand" />
+  <a href="https://redux-toolkit.js.org/">
+    <img src="https://img.shields.io/badge/Redux Toolkit-764ABC?style=for-the-badge&logo=redux&logoColor=white" alt="Redux Toolkit" />
+  </a>
+  <a href="https://tanstack.com/router">
+    <img src="https://img.shields.io/badge/TanStack Router-FF4154?style=for-the-badge&logo=reactrouter&logoColor=white" alt="TanStack Router" />
   </a>
   <a href="https://react-hook-form.com/">
     <img src="https://img.shields.io/badge/React Hook Form-EC5990?style=for-the-badge&logo=reacthookform&logoColor=white" alt="React Hook Form" />
@@ -47,7 +48,7 @@ The goal is to provide a secure, scalable, and easy-to-integrate auth solution f
 
 ---
 
-## 🔐 Features (Planned)
+## 🔐 Features
 
 - User registration & login
 - Password hashing with bcrypt
@@ -59,8 +60,9 @@ The goal is to provide a secure, scalable, and easy-to-integrate auth solution f
 - Fully typed API with TypeScript
 - Clean, component-based UI with shadcn/ui
 - Responsive styling via Tailwind CSS
-- Frontend state via Zustand
+- Frontend state via Redux Toolkit
 - Forms via React Hook Form
+- Routing via TanStack Router
 - Commit standardization via Conventional Commits
 
 ---
@@ -80,19 +82,11 @@ The goal is to provide a secure, scalable, and easy-to-integrate auth solution f
 ### Frontend
 
 - **React JS**
-- **Zustand** – state management
+- **TanStack Router** – type-safe routing
+- **Redux Toolkit** – state management
 - **React Hook Form** – form handling & validation
 - **Tailwind CSS** – utility-first CSS framework
 - **shadcn/ui** – accessible component library
-
----
-
-## 🚧 Project Status
-
-- ✅ Initial project scaffolding
-- ⚙️ Database schema design in progress
-- 🔐 Core auth logic (signup/login) in development
-- 🌐 Frontend layout & components started
 
 ---
 
