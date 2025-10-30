@@ -16,7 +16,9 @@ import { Route as AuthResendRouteImport } from './routes/auth/resend'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthForgotRouteImport } from './routes/auth/forgot'
+import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AuthVerifyTokenRouteImport } from './routes/auth/verify/$token'
+import { Route as AdminUsersIdRouteImport } from './routes/admin/users/$id'
 
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
@@ -53,41 +55,57 @@ const AuthForgotRoute = AuthForgotRouteImport.update({
   path: '/auth/forgot',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthVerifyTokenRoute = AuthVerifyTokenRouteImport.update({
   id: '/auth/verify/$token',
   path: '/auth/verify/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
+  id: '/admin/users/$id',
+  path: '/admin/users/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/profile': typeof ProfileRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/resend': typeof AuthResendRoute
   '/user/settings': typeof UserSettingsRoute
+  '/admin/users/$id': typeof AdminUsersIdRoute
   '/auth/verify/$token': typeof AuthVerifyTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/profile': typeof ProfileRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/resend': typeof AuthResendRoute
   '/user/settings': typeof UserSettingsRoute
+  '/admin/users/$id': typeof AdminUsersIdRoute
   '/auth/verify/$token': typeof AuthVerifyTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/profile': typeof ProfileRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/resend': typeof AuthResendRoute
   '/user/settings': typeof UserSettingsRoute
+  '/admin/users/$id': typeof AdminUsersIdRoute
   '/auth/verify/$token': typeof AuthVerifyTokenRoute
 }
 export interface FileRouteTypes {
@@ -95,42 +113,50 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/profile'
+    | '/admin/dashboard'
     | '/auth/forgot'
     | '/auth/login'
     | '/auth/register'
     | '/auth/resend'
     | '/user/settings'
+    | '/admin/users/$id'
     | '/auth/verify/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/profile'
+    | '/admin/dashboard'
     | '/auth/forgot'
     | '/auth/login'
     | '/auth/register'
     | '/auth/resend'
     | '/user/settings'
+    | '/admin/users/$id'
     | '/auth/verify/$token'
   id:
     | '__root__'
     | '/'
     | '/profile'
+    | '/admin/dashboard'
     | '/auth/forgot'
     | '/auth/login'
     | '/auth/register'
     | '/auth/resend'
     | '/user/settings'
+    | '/admin/users/$id'
     | '/auth/verify/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProfileRoute: typeof ProfileRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
   AuthForgotRoute: typeof AuthForgotRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
   AuthResendRoute: typeof AuthResendRoute
   UserSettingsRoute: typeof UserSettingsRoute
+  AdminUsersIdRoute: typeof AdminUsersIdRoute
   AuthVerifyTokenRoute: typeof AuthVerifyTokenRoute
 }
 
@@ -185,11 +211,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthForgotRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/verify/$token': {
       id: '/auth/verify/$token'
       path: '/auth/verify/$token'
       fullPath: '/auth/verify/$token'
       preLoaderRoute: typeof AuthVerifyTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users/$id': {
+      id: '/admin/users/$id'
+      path: '/admin/users/$id'
+      fullPath: '/admin/users/$id'
+      preLoaderRoute: typeof AdminUsersIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -198,11 +238,13 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProfileRoute: ProfileRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
   AuthForgotRoute: AuthForgotRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
   AuthResendRoute: AuthResendRoute,
   UserSettingsRoute: UserSettingsRoute,
+  AdminUsersIdRoute: AdminUsersIdRoute,
   AuthVerifyTokenRoute: AuthVerifyTokenRoute,
 }
 export const routeTree = rootRouteImport

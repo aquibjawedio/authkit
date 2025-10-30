@@ -1,8 +1,14 @@
-import { LogIn, UserPlus } from "lucide-react";
+import { BookKey, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
 
 const HeroSection = () => {
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
+
   return (
     <section className="relative flex flex-col items-center justify-center py-20 gap-4 text-center px-4 overflow-hidden">
       <div className="absolute top-10 left-10 w-24 h-24 bg-primary/20 rounded-full blur-2xl animate-float-slow" />
@@ -17,26 +23,51 @@ const HeroSection = () => {
         use.
       </p>
 
-      <div className="flex gap-4 mt-6 z-10">
-        <Link to="/auth/login">
-          <Button
-            variant="secondary"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg transition-transform hover:scale-105 cursor-pointer"
-          >
-            <LogIn className="mr-2 h-4 w-4" />
-            Login
-          </Button>
-        </Link>
-        <Link to="/auth/register">
-          <Button
-            variant="outline"
-            className="hover:bg-primary/10 hover:text-primary transition-transform hover:scale-105 cursor-pointer"
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            Register
-          </Button>
-        </Link>
-      </div>
+      {isAuthenticated ? (
+        <div className="flex gap-4 mt-6 z-10">
+          <Link to="/profile">
+            <Button
+              variant="secondary"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg transition-transform hover:scale-105 cursor-pointer"
+            >
+              <LogIn className="mr-2 h-4 w-4" />
+              Dashboard
+            </Button>
+          </Link>
+          {user?.role === "ADMIN" && (
+            <Link to="/admin/dashboard">
+              <Button
+                variant="outline"
+                className="shadow-lg transition-transform hover:scale-105 cursor-pointer"
+              >
+                <BookKey className="mr-2 h-4 w-4" />
+                Admin Panel
+              </Button>
+            </Link>
+          )}
+        </div>
+      ) : (
+        <div className="flex gap-4 mt-6 z-10">
+          <Link to="/auth/login">
+            <Button
+              variant="secondary"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg transition-transform hover:scale-105 cursor-pointer"
+            >
+              <LogIn className="mr-2 h-4 w-4" />
+              Login
+            </Button>
+          </Link>
+          <Link to="/auth/register">
+            <Button
+              variant="outline"
+              className="hover:bg-primary/10 hover:text-primary transition-transform hover:scale-105 cursor-pointer"
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              Register
+            </Button>
+          </Link>
+        </div>
+      )}
     </section>
   );
 };

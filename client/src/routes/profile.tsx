@@ -14,9 +14,11 @@ export const Route = createFileRoute("/profile")({
 
 function RouteComponent() {
   const navigate = useNavigate();
-  const { user, loading } = useSelector((state: RootState) => state.auth);
+  const { user, loading, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
 
-  if (loading) {
+  if (loading || !isAuthenticated) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center">
         <SpinLoader />
@@ -26,7 +28,7 @@ function RouteComponent() {
 
   return (
     user && (
-      <div className="w-full min-h-screen flex items-center justify-center bg-muted/30 p-6">
+      <div className="w-full min-h-screen flex items-center justify-center bg-muted/30 p-6 rounded-md">
         <Card className="w-full max-w-3xl p-4 sm:p-6">
           <CardHeader className="flex flex-col sm:flex-row items-center gap-6 border-b pb-6">
             <Avatar className="w-28 h-28 shadow-md border">
